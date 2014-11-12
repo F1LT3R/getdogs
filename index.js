@@ -14,7 +14,7 @@ var createImageSizeStream = require('image-size-stream')
 
 
   program
-    .version('0.0.8')
+    .version('0.0.9')
     .option('-s, --search [type]', 'Return something not dogs [default is "dogs"]', 'dogs')
     .option('-n, --number [type]', 'Add the specified number of images [default is 3]', '3')
     .option('-w, --width [type]', 'The output character width [default is 80]', '80')
@@ -165,10 +165,10 @@ var createImageSizeStream = require('image-size-stream')
       }
       
       cursor.write('\n');
-      cursor.reset();
       cursor.underline();
       if (!program.monotone) cursor.rgb(128,128,128);
       console.log(image.url+'\n\n');
+      cursor.reset();
     });
     
     cursor.reset();
