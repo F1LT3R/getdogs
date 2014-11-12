@@ -112,9 +112,6 @@ var dawgsURL = 'https://www.google.com/search?q=dogs&num=3&tbm=isch';
   function asciify(image){
     return new Promise(function(resolve, reject){
 
-      resolve(image.size);
-      // console.log(ary);
-
       var charWidth = 80
       , charRamp = (" .'`^\",:;Il!i><~+_-?][}{1)(|\\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$")
       , charRampLen = charRamp.length
@@ -153,6 +150,8 @@ var dawgsURL = 'https://www.google.com/search?q=dogs&num=3&tbm=isch';
       }
       console.log(ascii);
     });
+    
+    resolve(true);
   }
 
 
