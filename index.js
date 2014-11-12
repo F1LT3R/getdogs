@@ -115,7 +115,7 @@ var dawgsURL = 'https://www.google.com/search?q=dogs&num=3&tbm=isch';
       resolve(image.size);
       // console.log(ary);
 
-      var charWidth = 100
+      var charWidth = 80
       , charRamp = (" .'`^\",:;Il!i><~+_-?][}{1)(|\\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$")
       , charRampLen = charRamp.length
       , colorChannels = 3

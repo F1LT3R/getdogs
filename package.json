@@ -3,7 +3,7 @@
   "bin": {
     "getdogs": "index.js"
   },
-  "version": "0.0.3",
+  "version": "0.0.5",
   "description": "it gets dogs for your console",
   
   "main": "index.js",
