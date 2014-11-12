@@ -2,19 +2,17 @@
 
 var createImageSizeStream = require('image-size-stream')
   , getter = require('pixel-getter')
+  , program = require('commander')
   , Promise = require('bluebird')
   , jsdom = require('jsdom')
   , http = require('https')
-  , url = require('url')
-  , fs  = require('fs')
   , ansi = require('ansi')
-  , program = require('commander')
   , cursor = ansi(process.stdout)
   ; 
 
 
   program
-    .version('0.0.9')
+    .version('0.0.10')
     .option('-s, --search [type]', 'Return something not dogs [default is "dogs"]', 'dogs')
     .option('-n, --number [type]', 'Add the specified number of images [default is 3]', '3')
     .option('-w, --width [type]', 'The output character width [default is 80]', '80')

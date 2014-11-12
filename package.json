@@ -3,7 +3,7 @@
   "bin": {
     "getdogs": "index.js"
   },
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "it gets dogs from google and puts them on your console",
   "main": "index.js",
   "author": "Alistair MacDonald <al@pwn.io>",
