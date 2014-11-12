@@ -3,34 +3,50 @@
 var createImageSizeStream = require('image-size-stream')
   , getter = require('pixel-getter')
   , Promise = require('bluebird')
-  , request = require('request')
   , jsdom = require('jsdom')
   , http = require('https')
   , url = require('url')
   , fs  = require('fs')
+  , ansi = require('ansi')
+  , program = require('commander')
+  , cursor = ansi(process.stdout)
   ; 
 
-var dawgsURL = 'https://www.google.com/search?q=dogs&num=3&tbm=isch';
 
-  function getMeSomeDogs(dogsURL){
+  program
+    .version('0.0.7')
+    .option('-s, --search [type]', 'Return something not dogs [default is "dogs"]', 'dogs')
+    .option('-n, --number [type]', 'Add the specified number of images [default is 3]', '3')
+    .option('-w, --width [type]', 'The output character width [default is 80]', '80')
+    .option('-m, --monotone', 'Turns off colors.')
+    .parse(process.argv)
+    ;
+
+  var dawgsURL = 'https://www.google.com/search?q='+program.search+'&num='+program.number+'&tbm=isch';
+
+  function getDogImageURLS(dogsURL){
     return new Promise(function(resolve, reject){
+      
       jsdom.env({
         url: dogsURL,
         scripts: ["http://code.jquery.com/jquery.js"],
+
         done: function (err, window) {
           if (err!==null) return reject(error);
+          
           var $ = window.$
             , dogs = $('img')
             , dogsList = []
             ;
 
-          dogs.each(function(i, n){
-            dogsList.push(n.src);
+          dogs.each(function(index, elem){
+            dogsList.push(elem.src);
           });
 
           resolve(dogsList);
         }
       });
+
     });
   }
 
@@ -40,6 +56,10 @@ var dawgsURL = 'https://www.google.com/search?q=dogs&num=3&tbm=isch';
     return new Promise(function(resolve, reject){
       var size = createImageSizeStream();
 
+      var request = http.get(url, function(response) {
+        response.pipe(size);
+      });
+
       size.on('size', function(dimensions) {
         resolve(dimensions);
         request.abort();
@@ -47,9 +67,6 @@ var dawgsURL = 'https://www.google.com/search?q=dogs&num=3&tbm=isch';
         reject(err);
       });
 
-      var request = http.get(url, function(response) {
-        response.pipe(size);
-      });
     });
   }
 
@@ -87,21 +104,20 @@ var dawgsURL = 'https://www.google.com/search?q=dogs&num=3&tbm=isch';
   };
 
 
-  function getImages(list){
-    return new Promise(function(resolve, reject){
+  function collectImages(list){
+    return new Promise(function(resolve, reject){      
       
       var imageCollection = [];
-            
       list.forEach(function (url, index){
-        // console.log(index, url);
         
         getImage(url).then(function(image){
+          image.url = url;
           imageCollection.push(image);
+          
           if (imageCollection.length === list.length) {
             resolve(imageCollection);
           }
         });
-
       });
 
     });
@@ -112,7 +128,7 @@ var dawgsURL = 'https://www.google.com/search?q=dogs&num=3&tbm=isch';
   function asciify(image){
     return new Promise(function(resolve, reject){
 
-      var charWidth = 80
+      var charWidth = program.width // Output with of images in terminal
       , charRamp = (" .'`^\",:;Il!i><~+_-?][}{1)(|\\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$")
       , charRampLen = charRamp.length
       , colorChannels = 3
@@ -120,52 +136,63 @@ var dawgsURL = 'https://www.google.com/search?q=dogs&num=3&tbm=isch';
       , maxRGB = colorChannels*valuesPerChannel  
       , rampRatio = charRampLen/(maxRGB+1)
       , pixels = image.pixels
+      , imageWidth = image.size.width
+      , imageHeight = image.size.height
+      , aspectRatio = imageWidth/charWidth
+      , charHeight = imageHeight/aspectRatio
+      , pixel // The current pixel during the iteration
+      , index // The index of the pixel in the image array
+      , asciiChar // The current ascii character assigned during iteration
+      , x // coord during iteration
+      , y // coord during iteration
       ;
 
-      var aspectRatio = image.size.width/charWidth
-        , ascii = ''
-        , thisColor
-        , closestColor
-        , i
-        , x
-        , y
-        , charHeight = image.size.height / aspectRatio
-        ;
-
+      cursor.bold();
       for (y = 0; y < charHeight; y+=2) {
         for (x = 0; x < charWidth; x+=1) {
 
+          index = imageWidth * parseInt(y*aspectRatio) + parseInt(x*aspectRatio);
+          pixel = pixels[index];
+          
+          brightness = pixel.r+pixel.g+pixel.b;
+          asciiChar = charRamp[parseInt(rampRatio*brightness)];
 
-          var idx = image.size.width  * parseInt(y*aspectRatio) + parseInt(x*aspectRatio)
-            , currentPixel = pixels[idx]
-            , r = currentPixel.r
-            , g = currentPixel.b
-            , b = currentPixel.b
-            , brightness = r+g+b
-            ;  
-
-          ascii += charRamp[parseInt(rampRatio*brightness)];
+          if (!program.monotone) cursor.rgb(pixel.r, pixel.g,pixel.b);
+          cursor.write(asciiChar);
         }
-        ascii += '\n';
+
+        cursor.write('\n');
       }
-      console.log(ascii);
+      
+      cursor.write('\n');
+      cursor.reset();
+      cursor.underline();
+      if (!program.monotone) cursor.rgb(128,128,128);
+      console.log(image.url+'\n\n');
     });
     
+    cursor.reset();
     resolve(true);
   }
 
 
-  getMeSomeDogs(dawgsURL)
-  .then(getImages)
+  getDogImageURLS(dawgsURL)
+  .then(collectImages)
   .then(function(images){
-    images.forEach(function(image){
+    console.log('\n');
+    return images.forEach(function(image){
       asciify(image);
     });
   })
   .catch(function(err){
-    console.log('ERR: ', err)
+    console.log('MAJOR FAIL: ', err)
   })
   ;
+
+
+
+
+
 
 
 

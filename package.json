@@ -3,27 +3,22 @@
   "bin": {
     "getdogs": "index.js"
   },
-  "version": "0.0.6",
-  "description": "it gets dogs for your console",
-  
+  "version": "0.0.7",
+  "description": "it gets dogs from google and puts them on your console",
   "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "test": "echo COOL"
-  },
   "author": "Alistair MacDonald <al@pwn.io>",
   "email": "al@pwn.io",
   "license": "MIT",
   "dependencies": {
+    "ansi": "^0.3.0",
     "bluebird": "^2.3.11",
+    "commander": "^2.5.0",
     "image-size-stream": "^0.1.1",
     "jsdom": "^1.2.1",
-    "pixel-getter": "0.0.3",
-    "pngjs": "^0.4.0",
-    "request": "^2.47.0"
+    "pixel-getter": "0.0.3"
   },
-  "repository" :
-  { "type" : "git"
-  , "url" : "http://github.com/f1lt3r/getdogs.git"
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/f1lt3r/getdogs.git"
   }
 }
