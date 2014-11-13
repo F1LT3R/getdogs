@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 
-var createImageSizeStream = require('image-size-stream')
-  , getter = require('pixel-getter')
-  , program = require('commander')
-  , Promise = require('bluebird')
-  , jsdom = require('jsdom')
-  , http = require('https')
-  , ansi = require('ansi')
-  , cursor = ansi(process.stdout)
-  ; 
+  // Requires
+  var createImageSizeStream = require('image-size-stream')
+    , getter = require('pixel-getter')
+    , program = require('commander')
+    , Promise = require('bluebird')
+    , jsdom = require('jsdom')
+    , http = require('https')
+    , ansi = require('ansi')
+    , cursor = ansi(process.stdout)
+    ; 
 
 
+  // Get Program Options
   program
     .version('0.0.10')
     .option('-s, --search [type]', 'Return something not dogs [default is "dogs"]', 'dogs')
@@ -20,8 +22,13 @@ var createImageSizeStream = require('image-size-stream')
     .parse(process.argv)
     ;
 
+
+  // Create Google Image Search URL
   var dawgsURL = 'https://www.google.com/search?q='+program.search+'&num='+program.number+'&tbm=isch';
 
+  
+
+  // Fetch list of URLS for image thumbnails from Google
   function getDogImageURLS(dogsURL){
     return new Promise(function(resolve, reject){
       
@@ -50,6 +57,7 @@ var createImageSizeStream = require('image-size-stream')
 
 
 
+  // Get sizes of each image
   function getImageSize(url){
     return new Promise(function(resolve, reject){
       var size = createImageSizeStream();
@@ -70,6 +78,7 @@ var createImageSizeStream = require('image-size-stream')
 
 
 
+  // Get the RGB pixel values of the image
   function getPixelArray(url){
     return new Promise(function(resolve, reject){
       getter.get(url, function(err, pixels) {
@@ -81,6 +90,7 @@ var createImageSizeStream = require('image-size-stream')
 
 
 
+  // Image object combines dimension meta with pixel data
   function getImage(url){
     return new Promise(function(resolve, reject){
       var image = {size: null, pixels: null};
@@ -102,6 +112,7 @@ var createImageSizeStream = require('image-size-stream')
   };
 
 
+  // Function to collect the list of images 
   function collectImages(list){
     return new Promise(function(resolve, reject){      
       
@@ -123,6 +134,7 @@ var createImageSizeStream = require('image-size-stream')
 
 
 
+  // Create ASCII Art from the images
   function asciify(image){
     return new Promise(function(resolve, reject){
 
@@ -146,13 +158,22 @@ var createImageSizeStream = require('image-size-stream')
       ;
 
       cursor.bold();
+
+      // Iterate over ary, step by char-to-pixel ratio (x*aspectRatio)
+      // y+=2 because chars are generally ~2x high as wide
       for (y = 0; y < charHeight; y+=2) {
         for (x = 0; x < charWidth; x+=1) {
 
+          // Get the pixel's index in the 1D array
           index = imageWidth * parseInt(y*aspectRatio) + parseInt(x*aspectRatio);
+          
+          // reference the pixel sub-array (rgb)
           pixel = pixels[index];
           
+          // Determinte the overall brightness of the 3 channels
           brightness = pixel.r+pixel.g+pixel.b;
+          
+          // Determine which char from the ramp best suits the brightness
           asciiChar = charRamp[parseInt(rampRatio*brightness)];
 
           if (!program.monotone) cursor.rgb(pixel.r, pixel.g,pixel.b);
@@ -163,6 +184,8 @@ var createImageSizeStream = require('image-size-stream')
       }
       
       cursor.write('\n');
+      
+      // Write the URL below the image so people can click in console
       cursor.underline();
       if (!program.monotone) cursor.rgb(128,128,128);
       console.log(image.url+'\n\n');
@@ -174,6 +197,8 @@ var createImageSizeStream = require('image-size-stream')
   }
 
 
+
+  // Begin getting dogs
   getDogImageURLS(dawgsURL)
   .then(collectImages)
   .then(function(images){
@@ -183,16 +208,6 @@ var createImageSizeStream = require('image-size-stream')
     });
   })
   .catch(function(err){
-    console.log('MAJOR FAIL: ', err)
+    console.log('GETDOGS #FAIL: ', err)
   })
   ;
-
-
-
-
-
-
-
-
-
-
